@@ -2,6 +2,12 @@ local APP_ID = 'qbskills:progression'
 local skills = {}
 local appOpen = false
 
+local function readSkills()
+    local data = exports.qbcore:getPlayerData({ 'skills' })
+    skills = type(data) == 'table' and data or {}
+    return next(skills) ~= nil
+end
+
 local function formatNumber(value)
     local formatted = tostring(math.floor(tonumber(value) or 0))
     while true do
@@ -95,33 +101,16 @@ local function render()
     if appOpen then QB.nui.registerApp(appDefinition()) end
 end
 
-local function refresh()
-    local data, err = QB.callback.trigger('qbskills:server:skillsRead')
-    if type(data) ~= 'table' then return nil, err or 'Could not load your skills.' end
-    skills = data
-    render()
-    return data
-end
-
 local function open()
     if appOpen then return end
-    CreateThread(function()
-        local data, err = refresh()
-        if not data then
-            return QB.notify.send({ title = 'Skills', message = err, type = 'error' })
-        end
-        appOpen = true
-        QB.nui.registerApp(appDefinition())
-        QB.nui.openApp(APP_ID)
-        appOpen = false
-    end)
+    if not readSkills() then
+        return QB.notify.send({ title = 'Skills', message = 'Your skills are not available yet.', type = 'error' })
+    end
+    appOpen = true
+    QB.nui.registerApp(appDefinition())
+    QB.nui.openApp(APP_ID)
+    appOpen = false
 end
-
-RegisterNetEvent('qbskills:client:skillsUpdated', function(data)
-    if type(data) ~= 'table' then return end
-    skills = data
-    render()
-end)
 
 RegisterNetEvent('qbskills:client:levelledUp', function(data)
     if type(data) ~= 'table' then return end
@@ -137,16 +126,15 @@ RegisterCommand('skillList', open, false) -- md_skills compatibility command
 RegisterKeyMapping(Config.command, 'Open your skills', 'keyboard', Config.keyMapping)
 
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
-    CreateThread(function() refresh() end)
+    readSkills()
 end)
 
--- Also warm the presentation cache when qbskills is restarted after a
--- character has already loaded. Failure is harmless here; opening the panel
--- will retry and show a useful message if the character is still unavailable.
-CreateThread(function()
-    Wait(1000)
-    refresh()
+exports.qbcore:onPlayerDataChange({ 'skills' }, function(_, value)
+    skills = type(value) == 'table' and value or {}
+    render()
 end)
+
+readSkills()
 
 exports('getRep', function(skill)
     if skill == nil then return skills end
@@ -164,7 +152,7 @@ end)
 
 exports('getSkillCheckOptions', function(skill, gameType, options)
     -- The client cache only influences un-authorized presentation checks. The
-    -- server export repeats the same calculation over authoritative metadata
+    -- server export repeats the same calculation over authoritative SQL data
     -- before it issues any proof-producing authorization.
     local definition, data = Config.skills[skill], skills[skill]
     local modifiers = definition and definition.skillCheck and definition.skillCheck[gameType]

@@ -7,8 +7,8 @@ server exports, and a `/skillList` compatibility command.
 
 It integrates with this server differently in two intentional ways:
 
-- Skill data is persisted under `players.metadata.skills` through qbcore, so
-  it is replicated and saved with the character without an extra SQL table.
+- Skill XP is authoritative in `qbskills_progress`. `PlayerData.skills` is a
+  replicated-only read model for client UI and is never trusted server-side.
 - Its panel is a qblib AppShell app. The shared UI owns focus and lifecycle;
   `qbskills` owns only skill state and the progression graph data.
 
@@ -22,7 +22,9 @@ ensure qbskills
 
 Configure skill names, order, labels, icons, level cap, and optional minigame
 bonuses in [config.lua](config.lua). Existing characters are automatically
-backfilled with any new configured skill on their next load/read.
+backfilled with any new configured skill on their next load/read. Existing
+`metadata.skills` values are imported once, marked migrated in
+`qbskills_profiles`, and removed from metadata.
 
 Open the panel with `/skills`, `/skillList`, or the configured F6 key mapping.
 
@@ -46,6 +48,15 @@ exports.qbskills:isLevel(source, 'mining', 20) -- boolean
 Each skill data record contains `name`, `label`, `icon`, `xp`, `level`,
 `percent`, `maxLevel`, `levelXp`, `nextLevelXp`, and `xpToNextLevel`.
 
+Client UI can read the already-replicated field without a callback:
+
+```lua
+local mining = exports.qbcore:getPlayerData({ 'skills', 'mining' })
+if mining and mining.level >= 20 then
+    -- presentation only; authorize valuable actions on the server
+end
+```
+
 ## qblib skill checks
 
 qblib exposes an optional `QB.skills` bridge only while `qbskills` is started.
@@ -62,7 +73,7 @@ local authorization = QB.minigames.authorizeSkillCheck(src, 'mining', 'skillbar'
 local result = Citizen.Await(QB.minigames.playSkillCheck('mining', 'skillbar', nil, authorization))
 ```
 
-The skill bonus is calculated from authoritative server metadata and captured
+The skill bonus is calculated from authoritative server SQL state and captured
 inside the authorization. The player still needs a valid qblib proof and the
 calling resource must re-check its own target, inventory, and proximity state
 before applying its result.

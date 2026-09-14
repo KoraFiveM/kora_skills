@@ -1,7 +1,7 @@
 Config = {
-    -- Skills live inside qbcore's already-persisted player metadata. Keeping
-    -- this namespace private prevents unrelated metadata from being touched.
-    metadataKey = 'skills',
+    -- Read once for the automatic metadata -> SQL migration. A per-character
+    -- profile marker ensures later metadata writes can never be re-imported.
+    legacyMetadataKey = 'skills',
     maxLevel = 99,
     maxAward = 100000,
     command = 'skills',

@@ -21,7 +21,7 @@ end
 local seenSkills = {}
 for index, name in ipairs(Config.skillOrder) do
     local definition = Config.skills[name]
-    assert(type(name) == 'string' and name:match('^[%w_%-]+$'),
+    assert(type(name) == 'string' and #name <= 64 and name:match('^[%w_%-]+$'),
         ('qbskills Config.skillOrder item %d must be a safe skill id.'):format(index))
     assert(not seenSkills[name], ('qbskills Config.skillOrder repeats %q.'):format(name))
     assert(type(definition) == 'table' and type(definition.label) == 'string' and definition.label ~= '',

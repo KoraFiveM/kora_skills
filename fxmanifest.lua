@@ -10,13 +10,18 @@ description 'Config-driven XP skills with qblib AppShell progression graphs'
 dependency 'qblib'
 dependency 'qbtheme'
 dependency 'qbcore'
+dependency 'qbsql'
 
 shared_script '@qblib/init.lua'
+shared_script '@qbsql/init.lua'
 
 shared_scripts {
     'config.lua',
     'shared/curve.lua',
 }
 
-server_script 'server/main.lua'
+server_scripts {
+    'server/database.lua',
+    'server/main.lua',
+}
 client_script 'client/main.lua'

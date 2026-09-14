@@ -2,19 +2,40 @@ local function isSource(source)
     return type(source) == 'number' and source >= 1 and source % 1 == 0
 end
 
+local skillsBySource = {}
+local awardLocks = {}
+
+local function loadPlayerSkills(source, citizenid)
+    local player = exports.qbcore:getPlayer(source)
+    if type(player) ~= 'table' or player.citizenid ~= citizenid then return nil, 'player has no active character' end
+    local metadata = type(player.metadata) == 'table' and player.metadata or {}
+    local legacy = metadata[Config.legacyMetadataKey]
+    local skills, err = QBSkillsDatabase.load(citizenid, legacy)
+    if not skills then return nil, err end
+    skillsBySource[source] = { citizenid = citizenid, skills = skills }
+
+    -- The profile marker in SQL makes this a one-way migration. Removing the
+    -- old blob also prevents stale/external metadata writes from looking like
+    -- authoritative progression to other server resources.
+    if legacy ~= nil then exports.qbcore:setMetaData(source, Config.legacyMetadataKey, nil) end
+    return skills
+end
+
 local function playerSkills(source)
     if not isSource(source) then return nil, 'invalid player source' end
     local player = exports.qbcore:getPlayer(source)
     if type(player) ~= 'table' then return nil, 'player has no active character' end
+    local cached = skillsBySource[source]
+    if cached and cached.citizenid == player.citizenid then return cached.skills end
 
-    local stored = exports.qbcore:getMetaData(source, Config.metadataKey)
-    local skills, changed = QBSkills.normalise(stored)
-    if changed then exports.qbcore:setMetaData(source, Config.metadataKey, skills) end
+    local skills, err = loadPlayerSkills(source, player.citizenid)
+    if not skills then return nil, err end
+    exports.qbcore:setPlayerDataField(source, 'skills', skills)
     return skills
 end
 
 local function syncSkills(source, skills)
-    TriggerClientEvent('qbskills:client:skillsUpdated', source, skills)
+    return exports.qbcore:setPlayerDataField(source, 'skills', skills)
 end
 
 local function cloneOptions(options)
@@ -107,6 +128,30 @@ end
 ---@param location? vector3|table
 ---@param distance? number
 ---@return boolean, string|nil
+local function addRepLocked(source, skill, amount)
+    local skills, err = playerSkills(source)
+    if not skills then return false, err end
+    local previous = skills[skill]
+    local player = exports.qbcore:getPlayer(source)
+    if type(player) ~= 'table' then return false, 'player has no active character' end
+    local xp, writeErr = QBSkillsDatabase.addXp(
+        player.citizenid,
+        skill,
+        amount,
+        QBSkills.xpForLevel(Config.maxLevel)
+    )
+    if not xp then return false, writeErr end
+    local updated = QBSkills.makeSkill(skill, xp)
+    skills[skill] = updated
+    local synced, syncErr = syncSkills(source, skills)
+    if not synced then return false, syncErr end
+
+    if updated.level > previous.level then
+        TriggerClientEvent('qbskills:client:levelledUp', source, updated)
+    end
+    return true
+end
+
 local function addRep(source, skill, amount, location, distance)
     if type(skill) ~= 'string' or not Config.skills[skill] then return false, 'unknown skill' end
     amount = tonumber(amount)
@@ -118,29 +163,30 @@ local function addRep(source, skill, amount, location, distance)
         if not near then return false, err end
     end
 
-    local skills, err = playerSkills(source)
-    if not skills then return false, err end
-    local previous = skills[skill]
-    local updated = QBSkills.makeSkill(skill, previous.xp + amount)
-    skills[skill] = updated
-    exports.qbcore:setMetaData(source, Config.metadataKey, skills)
-    syncSkills(source, skills)
-
-    if updated.level > previous.level then
-        TriggerClientEvent('qbskills:client:levelledUp', source, updated)
-    end
-    return true
+    -- The SQL increment itself is atomic. Serialising per session also keeps
+    -- read-back completion order from allowing an older result to replace a
+    -- newer value in the private cache or replicated read model.
+    while awardLocks[source] do Wait(0) end
+    awardLocks[source] = true
+    local results = table.pack(pcall(addRepLocked, source, skill, amount))
+    awardLocks[source] = nil
+    if not results[1] then error(results[2], 0) end
+    return table.unpack(results, 2, results.n)
 end
 
-QB.callback.register('qbskills:server:skillsRead', function(source)
-    local skills, err = getAllRep(source)
-    if skills then syncSkills(source, skills) end
-    return skills, err
-end, { rateLimit = { max = 5, window = 10000 } })
+AddEventHandler('qbskills:server:databaseReady', function()
+    local registered, err = exports.qbcore:registerPlayerDataField('skills', loadPlayerSkills)
+    if not registered then
+        print(('^1[qbskills]^7 could not register PlayerData.skills: %s'):format(tostring(err)))
+    end
+end)
 
-AddEventHandler('qbcore:server:playerLoaded', function(source)
-    local skills = playerSkills(source)
-    if skills then syncSkills(source, skills) end
+AddEventHandler('QBCore:Server:OnPlayerUnload', function(source)
+    skillsBySource[source] = nil
+end)
+
+AddEventHandler('qbcore:server:playerDropped', function(source)
+    skillsBySource[source] = nil
 end)
 
 exports('getRep', getRep)
