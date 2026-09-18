@@ -70,7 +70,7 @@ local authorization = QB.minigames.authorizeSkillCheck(src, 'mining', 'skillbar'
 })
 
 -- client
-local result = Citizen.Await(QB.minigames.playSkillCheck('mining', 'skillbar', nil, authorization))
+local result = QB.minigames.playSkillCheck('mining', 'skillbar', nil, authorization)
 ```
 
 The skill bonus is calculated from authoritative server SQL state and captured
