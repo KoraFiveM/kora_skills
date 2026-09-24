@@ -8,7 +8,7 @@ Config = {
     keyMapping = 'F4',
 
     -- The ordering is explicit so the panel and exported data stay stable.
-    skillOrder = { 'mining', 'fishing', 'woodcutting', 'crafting', 'cooking' },
+    skillOrder = { 'mining', 'fishing', 'woodcutting', 'crafting', 'cooking', 'metaldetecting' },
     skills = {
         mining = {
             label = 'Mining', icon = 'Hammer',
@@ -31,6 +31,10 @@ Config = {
         cooking = {
             label = 'Cooking', icon = 'Star',
             skillCheck = { skillbar = { zoneSize = 0.08 }, mash = { requiredPresses = -5 } },
+        },
+        metaldetecting = {
+            label = 'Metal Detecting', icon = 'Search',
+            skillCheck = { skillbar = { zoneSize = 0.10 } },
         },
     },
 }
