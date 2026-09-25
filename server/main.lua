@@ -114,11 +114,10 @@ local function isWithinDistance(source, location, distance)
     distance = tonumber(distance) or 5.0
     if distance <= 0 or distance > 1000 then return false, 'invalid award distance' end
 
-    local ped = GetPlayerPed(source)
-    if not ped or ped == 0 then return false, 'player ped is unavailable' end
-    local playerCoords = GetEntityCoords(ped)
     local target = vector3(location.x, location.y, location.z)
-    if #(playerCoords - target) > distance then return false, 'player is too far from the award location' end
+    if not QB.distance.player(source, target, distance) then
+        return false, 'player is too far from the award location'
+    end
     return true
 end
 
