@@ -8,7 +8,7 @@ Config = {
     keyMapping = 'F4',
 
     -- The ordering is explicit so the panel and exported data stay stable.
-    skillOrder = { 'mining', 'fishing', 'woodcutting', 'crafting', 'cooking', 'metaldetecting' },
+    skillOrder = { 'mining', 'fishing', 'woodcutting', 'crafting', 'cooking', 'metaldetecting', 'computing', 'hacking' },
     skills = {
         mining = {
             label = 'Mining', icon = 'Hammer',
@@ -35,6 +35,14 @@ Config = {
         metaldetecting = {
             label = 'Metal Detecting', icon = 'Search',
             skillCheck = { skillbar = { zoneSize = 0.10 } },
+        },
+        computing = {
+            label = 'Computing', icon = 'Cpu',
+            skillCheck = { circuit = { nodeCount = -3 }, hacking = { solutionsize = -1 } },
+        },
+        hacking = {
+            label = 'Hacking', icon = 'Terminal',
+            skillCheck = { hacking = { solutionsize = -1 }, circuit = { nodeCount = -1 } },
         },
     },
 }
