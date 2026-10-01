@@ -10,9 +10,19 @@ local function loadPlayerSkills(source, citizenid)
     if type(player) ~= 'table' or player.citizenid ~= citizenid then return nil, 'player has no active character' end
     local metadata = type(player.metadata) == 'table' and player.metadata or {}
     local legacy = metadata[Config.legacyMetadataKey]
+    -- Unload/drop removes this record, retiring any profile reads still in flight.
+    local cached = skillsBySource[source]
+    if not cached or cached.citizenid ~= citizenid then
+        cached = { citizenid = citizenid }
+        skillsBySource[source] = cached
+    end
     local skills, err = QBSkillsDatabase.load(citizenid, legacy)
     if not skills then return nil, err end
-    skillsBySource[source] = { citizenid = citizenid, skills = skills }
+    player = exports.qbcore:getPlayer(source)
+    if skillsBySource[source] ~= cached or type(player) ~= 'table' or player.citizenid ~= citizenid then
+        return nil, 'player has no active character'
+    end
+    cached.skills = skills
 
     -- The profile marker in SQL makes this a one-way migration. Removing the
     -- old blob also prevents stale/external metadata writes from looking like
@@ -26,7 +36,7 @@ local function playerSkills(source)
     local player = exports.qbcore:getPlayer(source)
     if type(player) ~= 'table' then return nil, 'player has no active character' end
     local cached = skillsBySource[source]
-    if cached and cached.citizenid == player.citizenid then return cached.skills end
+    if cached and cached.citizenid == player.citizenid and cached.skills then return cached.skills end
 
     local skills, err = loadPlayerSkills(source, player.citizenid)
     if not skills then return nil, err end

@@ -59,7 +59,7 @@ end
 
 dofile(resourceRoot .. 'config.lua')
 dofile(resourceRoot .. 'shared/curve.lua')
-dofile(resourceRoot .. 'server/main.lua')
+dofile(arg[1] or resourceRoot .. 'server/main.lua')
 
 harness.test('database readiness registers the pre-snapshot PlayerData provider', function()
     fire('qbskills:server:databaseReady')
@@ -100,6 +100,94 @@ harness.test('skill check options use authoritative cached progression', functio
     harness.truthy(math.abs(options.zoneSize - 0.24) < 0.000001,
         'a level cap mining bonus should widen the skillbar by its configured amount')
     harness.equal(options.attempts, 1, 'skill configuration must not alter attempts')
+end)
+
+harness.test('pending profile reads cannot outlive unload or drop cleanup', function()
+    local originalLoad = QBSkillsDatabase.load
+    local originalGetter = exports.qbcore.getPlayer
+    local originalMetadata = exports.qbcore.setMetaData
+    local originalSync = exports.qbcore.setPlayerDataField
+    local writes = 0
+    exports.qbcore.getPlayer = function(_, source)
+        if source ~= 1 or not player then return nil end
+        -- Actual Core exports a fresh snapshot; table identity must not identify a session.
+        return { citizenid = player.citizenid, metadata = player.metadata }
+    end
+    exports.qbcore.setMetaData = function(_, _, key, value)
+        writes = writes + 1
+        if not player then return false, 'no such player' end
+        player.metadata[key] = value
+        return true
+    end
+    exports.qbcore.setPlayerDataField = function(_, _, _, value)
+        writes = writes + 1
+        if not player then return false, 'no such player' end
+        replicated = value
+        return true
+    end
+    for _, case in ipairs({ 'different-character', 'unload-empty', 'drop-empty', 'unload-notification', 'same-cid-unload', 'same-cid-drop' }) do
+        fire('QBCore:Server:OnPlayerUnload', 1)
+        player = { citizenid = 'TEST', metadata = { skills = { fishing = { xp = 5 } } } }
+        local level, held = 15, true
+        QBSkillsDatabase.load = function()
+            local snapshot = QBSkills.normalise({ fishing = { xp = QBSkills.xpForLevel(level) } })
+            if held then held = false; coroutine.yield('profile-read') end
+            return snapshot
+        end
+        local thread = coroutine.create(function() return registeredExports.getRep(1, 'fishing') end)
+        local ok, marker = coroutine.resume(thread)
+        harness.truthy(ok, marker); harness.equal(marker, 'profile-read')
+        fire(case:find('drop', 1, true) and 'qbcore:server:playerDropped' or 'QBCore:Server:OnPlayerUnload', 1)
+        if case == 'unload-empty' or case == 'drop-empty' then
+            player = nil
+        elseif case == 'different-character' then
+            player = { citizenid = 'NEXT', metadata = {} }; level = 1
+            replicated = registeredProvider(1, 'NEXT')
+            player.metadata.skills = { marker = 'CURRENT' }
+        elseif case == 'unload-notification' then
+            player.metadata.skills = { marker = 'CURRENT' }
+        else
+            player = { citizenid = 'TEST', metadata = {} }; level = 30
+            replicated = registeredProvider(1, 'TEST')
+            player.metadata.skills = { marker = 'CURRENT' }
+        end
+        local before, beforeReplicated = writes, replicated
+        local value, err
+        ok, value, err = coroutine.resume(thread)
+        harness.truthy(ok, value)
+        harness.equal(coroutine.status(thread), 'dead')
+        harness.equal(value, nil, case .. ' must reject the old read')
+        harness.equal(err, 'player has no active character', case .. ' preserves nil,error contract')
+        harness.equal(writes, before, case .. ' must not clear metadata or synchronize')
+        harness.equal(replicated, beforeReplicated, case .. ' preserves the current read model')
+        if player then
+            harness.equal(player.metadata.skills.marker, 'CURRENT', case .. ' preserves current metadata')
+            if case ~= 'unload-notification' then
+                harness.equal(registeredExports.getRep(1, 'fishing').level, level, case .. ' keeps current session cache')
+            end
+        end
+    end
+    -- An incomplete cache marker must not suppress retry or concurrent active reads.
+    fire('QBCore:Server:OnPlayerUnload', 1)
+    player = { citizenid = 'TEST', metadata = {} }
+    QBSkillsDatabase.load = function() return nil, 'controlled read failure' end
+    local value, err = registeredExports.getRep(1, 'fishing')
+    harness.equal(value, nil); harness.equal(err, 'controlled read failure')
+    local held = true
+    QBSkillsDatabase.load = function()
+        if held then held = false; coroutine.yield('profile-read') end
+        return QBSkills.normalise({ fishing = { xp = QBSkills.xpForLevel(15) } })
+    end
+    local thread = coroutine.create(function() return registeredExports.getRep(1, 'fishing') end)
+    local ok, marker = coroutine.resume(thread)
+    harness.truthy(ok, marker); harness.equal(marker, 'profile-read')
+    harness.equal(registeredExports.getRep(1, 'fishing').level, 15, 'parallel active read still loads')
+    ok, value, err = coroutine.resume(thread)
+    harness.truthy(ok, value); harness.equal(value.level, 15); harness.equal(err, nil)
+    QBSkillsDatabase.load = originalLoad
+    exports.qbcore.getPlayer = originalGetter
+    exports.qbcore.setMetaData = originalMetadata
+    exports.qbcore.setPlayerDataField = originalSync
 end)
 
 if harness.failures > 0 then os.exit(1) end
