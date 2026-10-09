@@ -46,6 +46,12 @@ Config = {
         },
     },
 }
-
+exports('GetSkillsData', function()
+    local tbl = {}
+    for k, v in pairs(Config.skills) do
+        tbl[k] = v
+    end
+    return tbl
+end)
 -- Registers this resource-owned configuration with qblib.
 if QB and QB.config and QB.config.adopt then Config = QB.config.adopt(Config) end
