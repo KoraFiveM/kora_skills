@@ -49,7 +49,7 @@ Config = {
 exports('GetSkillsData', function()
     local tbl = {}
     for k, v in pairs(Config.skills) do
-        tbl[k] = v
+        tbl[k] = v.label
     end
     return tbl
 end)
