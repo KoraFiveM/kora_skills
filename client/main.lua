@@ -3,7 +3,7 @@ local skills = {}
 local appOpen = false
 
 local function readSkills()
-    local data = exports.qbcore:getPlayerData({ 'skills' })
+    local data = exports.kora_core:getPlayerData({ 'skills' })
     skills = type(data) == 'table' and data or {}
     return next(skills) ~= nil
 end
@@ -129,7 +129,7 @@ AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     readSkills()
 end)
 
-exports.qbcore:onPlayerDataChange({ 'skills' }, function(_, value)
+exports.kora_core:onPlayerDataChange({ 'skills' }, function(_, value)
     skills = type(value) == 'table' and value or {}
     render()
 end)

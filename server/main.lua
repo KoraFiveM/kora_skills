@@ -6,7 +6,7 @@ local skillsBySource = {}
 local awardLocks = {}
 
 local function loadPlayerSkills(source, citizenid)
-    local player = exports.qbcore:getPlayer(source)
+    local player = exports.kora_core:getPlayer(source)
     if type(player) ~= 'table' or player.citizenid ~= citizenid then return nil, 'player has no active character' end
     local metadata = type(player.metadata) == 'table' and player.metadata or {}
     local legacy = metadata[Config.legacyMetadataKey]
@@ -18,7 +18,7 @@ local function loadPlayerSkills(source, citizenid)
     end
     local skills, err = QBSkillsDatabase.load(citizenid, legacy)
     if not skills then return nil, err end
-    player = exports.qbcore:getPlayer(source)
+    player = exports.kora_core:getPlayer(source)
     if skillsBySource[source] ~= cached or type(player) ~= 'table' or player.citizenid ~= citizenid then
         return nil, 'player has no active character'
     end
@@ -27,25 +27,25 @@ local function loadPlayerSkills(source, citizenid)
     -- The profile marker in SQL makes this a one-way migration. Removing the
     -- old blob also prevents stale/external metadata writes from looking like
     -- authoritative progression to other server resources.
-    if legacy ~= nil then exports.qbcore:setMetaData(source, Config.legacyMetadataKey, nil) end
+    if legacy ~= nil then exports.kora_core:setMetaData(source, Config.legacyMetadataKey, nil) end
     return skills
 end
 
 local function playerSkills(source)
     if not isSource(source) then return nil, 'invalid player source' end
-    local player = exports.qbcore:getPlayer(source)
+    local player = exports.kora_core:getPlayer(source)
     if type(player) ~= 'table' then return nil, 'player has no active character' end
     local cached = skillsBySource[source]
     if cached and cached.citizenid == player.citizenid and cached.skills then return cached.skills end
 
     local skills, err = loadPlayerSkills(source, player.citizenid)
     if not skills then return nil, err end
-    exports.qbcore:setPlayerDataField(source, 'skills', skills)
+    exports.kora_core:setPlayerDataField(source, 'skills', skills)
     return skills
 end
 
 local function syncSkills(source, skills)
-    return exports.qbcore:setPlayerDataField(source, 'skills', skills)
+    return exports.kora_core:setPlayerDataField(source, 'skills', skills)
 end
 
 local function cloneOptions(options)
@@ -54,7 +54,7 @@ local function cloneOptions(options)
     return clone
 end
 
--- These are qblib's post-resolution safe ranges. Restricting the configuration
+-- These are kora_lib's post-resolution safe ranges. Restricting the configuration
 -- to this allow-list means a skill config cannot alter puzzle content, attempts,
 -- or server-side anti-cheat floors.
 local CHECK_BOUNDS = {
@@ -141,7 +141,7 @@ local function addRepLocked(source, skill, amount)
     local skills, err = playerSkills(source)
     if not skills then return false, err end
     local previous = skills[skill]
-    local player = exports.qbcore:getPlayer(source)
+    local player = exports.kora_core:getPlayer(source)
     if type(player) ~= 'table' then return false, 'player has no active character' end
     local xp, writeErr = QBSkillsDatabase.addXp(
         player.citizenid,
@@ -184,7 +184,7 @@ local function addRep(source, skill, amount, location, distance)
 end
 
 AddEventHandler('qbskills:server:databaseReady', function()
-    local registered, err = exports.qbcore:registerPlayerDataField('skills', loadPlayerSkills)
+    local registered, err = exports.kora_core:registerPlayerDataField('skills', loadPlayerSkills)
     if not registered then
         print(('^1[qbskills]^7 could not register PlayerData.skills: %s'):format(tostring(err)))
     end

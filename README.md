@@ -1,6 +1,6 @@
-# qbskills
+# kora_skills
 
-`qbskills` is a config-driven, XP-based character skill system, based heavily
+`kora_skills` is a config-driven, XP-based character skill system, based heavily
 on [md_skills](https://github.com/Mustachedom/md_skills): it retains the
 RuneScape-style level curve, per-skill XP/level/percentage data, simple
 server exports, and a `/skillList` compatibility command.
@@ -9,15 +9,15 @@ It integrates with this server differently in two intentional ways:
 
 - Skill XP is authoritative in `qbskills_progress`. `PlayerData.skills` is a
   replicated-only read model for client UI and is never trusted server-side.
-- Its panel is a qblib AppShell app. The shared UI owns focus and lifecycle;
-  `qbskills` owns only skill state and the progression graph data.
+- Its panel is a kora_lib AppShell app. The shared UI owns focus and lifecycle;
+  `kora_skills` owns only skill state and the progression graph data.
 
 ## Install
 
-Ensure it after qblib, qbtheme, and qbcore:
+Ensure it after kora_lib, kora_theme, and qbcore:
 
 ```cfg
-ensure qbskills
+ensure kora_skills
 ```
 
 Configure skill names, order, labels, icons, level cap, and optional minigame
@@ -35,14 +35,14 @@ familiar `md_skills` surface:
 
 ```lua
 -- One skill or the full keyed collection.
-exports.qbskills:getRep(source, 'mining')
-exports.qbskills:getAllRep(source)
+exports.kora_skills:getRep(source, 'mining')
+exports.kora_skills:getAllRep(source)
 
 -- Award a positive integer amount of XP. The optional location is checked on
 -- the server before the award is applied.
-local added, err = exports.qbskills:addRep(source, 'mining', 25, mineCoords, 4.0)
+local added, err = exports.kora_skills:addRep(source, 'mining', 25, mineCoords, 4.0)
 
-exports.qbskills:isLevel(source, 'mining', 20) -- boolean
+exports.kora_skills:isLevel(source, 'mining', 20) -- boolean
 ```
 
 Each skill data record contains `name`, `label`, `icon`, `xp`, `level`,
@@ -51,15 +51,15 @@ Each skill data record contains `name`, `label`, `icon`, `xp`, `level`,
 Client UI can read the already-replicated field without a callback:
 
 ```lua
-local mining = exports.qbcore:getPlayerData({ 'skills', 'mining' })
+local mining = exports.kora_core:getPlayerData({ 'skills', 'mining' })
 if mining and mining.level >= 20 then
     -- presentation only; authorize valuable actions on the server
 end
 ```
 
-## qblib skill checks
+## kora_lib skill checks
 
-qblib exposes an optional `QB.skills` bridge only while `qbskills` is started.
+kora_lib exposes an optional `QB.skills` bridge only while `kora_skills` is started.
 The proof-safe form for a valued action is:
 
 ```lua
@@ -74,6 +74,6 @@ local result = QB.minigames.playSkillCheck('mining', 'skillbar', nil, authorizat
 ```
 
 The skill bonus is calculated from authoritative server SQL state and captured
-inside the authorization. The player still needs a valid qblib proof and the
+inside the authorization. The player still needs a valid kora_lib proof and the
 calling resource must re-check its own target, inventory, and proximity state
 before applying its result.

@@ -13,7 +13,7 @@ Config = {
         mining = {
             label = 'Mining', icon = 'Hammer',
             -- At level 99, this grants up to 0.14 more of the visible
-            -- skillbar target. The server clamps it to qblib's safe bounds.
+            -- skillbar target. The server clamps it to kora_lib's safe bounds.
             skillCheck = { skillbar = { zoneSize = 0.14 }, lockpick = { tolerance = 0.05 } },
         },
         fishing = {
@@ -53,5 +53,5 @@ exports('GetSkillsData', function()
     end
     return tbl
 end)
--- Registers this resource-owned configuration with qblib.
+-- Registers this resource-owned configuration with kora_lib.
 if QB and QB.config and QB.config.adopt then Config = QB.config.adopt(Config) end

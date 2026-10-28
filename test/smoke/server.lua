@@ -25,7 +25,7 @@ _G.QBSkillsDatabase = {
     end,
 }
 _G.exports = setmetatable({
-    qbcore = {
+    kora_core = {
         getPlayer = function(_, source) return source == 1 and player or nil end,
         setMetaData = function(_, _, key, value)
             player.metadata[key] = value
@@ -104,22 +104,22 @@ end)
 
 harness.test('pending profile reads cannot outlive unload or drop cleanup', function()
     local originalLoad = QBSkillsDatabase.load
-    local originalGetter = exports.qbcore.getPlayer
-    local originalMetadata = exports.qbcore.setMetaData
-    local originalSync = exports.qbcore.setPlayerDataField
+    local originalGetter = exports.kora_core.getPlayer
+    local originalMetadata = exports.kora_core.setMetaData
+    local originalSync = exports.kora_core.setPlayerDataField
     local writes = 0
-    exports.qbcore.getPlayer = function(_, source)
+    exports.kora_core.getPlayer = function(_, source)
         if source ~= 1 or not player then return nil end
         -- Actual Core exports a fresh snapshot; table identity must not identify a session.
         return { citizenid = player.citizenid, metadata = player.metadata }
     end
-    exports.qbcore.setMetaData = function(_, _, key, value)
+    exports.kora_core.setMetaData = function(_, _, key, value)
         writes = writes + 1
         if not player then return false, 'no such player' end
         player.metadata[key] = value
         return true
     end
-    exports.qbcore.setPlayerDataField = function(_, _, _, value)
+    exports.kora_core.setPlayerDataField = function(_, _, _, value)
         writes = writes + 1
         if not player then return false, 'no such player' end
         replicated = value
@@ -185,9 +185,9 @@ harness.test('pending profile reads cannot outlive unload or drop cleanup', func
     ok, value, err = coroutine.resume(thread)
     harness.truthy(ok, value); harness.equal(value.level, 15); harness.equal(err, nil)
     QBSkillsDatabase.load = originalLoad
-    exports.qbcore.getPlayer = originalGetter
-    exports.qbcore.setMetaData = originalMetadata
-    exports.qbcore.setPlayerDataField = originalSync
+    exports.kora_core.getPlayer = originalGetter
+    exports.kora_core.setMetaData = originalMetadata
+    exports.kora_core.setPlayerDataField = originalSync
 end)
 
 if harness.failures > 0 then os.exit(1) end
