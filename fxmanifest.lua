@@ -7,7 +7,7 @@ name 'kora_skills'
 provide 'qbskills'
 author 'qbcore2'
 version '0.1.0'
-description 'Config-driven XP skills with qblib AppShell progression graphs'
+description 'Config-driven XP skills with kora_lib AppShell progression graphs'
 
 dependency 'kora_lib'
 dependency 'kora_theme'
