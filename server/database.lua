@@ -7,7 +7,7 @@ local AWARD_SQL = [[INSERT INTO `qbskills_progress` (`citizenid`,`skill`,`xp`) V
 local SKILL_SQL = 'SELECT `xp` FROM `qbskills_progress` WHERE `citizenid` = ? AND `skill` = ?'
 
 local function readProgress(citizenid)
-    local rows, err = QB.sql.query(PROGRESS_SQL, { citizenid })
+    local rows, err = Kora.sql.query(PROGRESS_SQL, { citizenid })
     if not rows then return nil, err end
     local stored = {}
     for _, row in ipairs(rows) do
@@ -31,14 +31,14 @@ local function importLegacy(citizenid, legacy)
             }
         end
     end
-    return QB.sql.transaction(statements)
+    return Kora.sql.transaction(statements)
 end
 
 ---@param citizenid string
 ---@param legacy? table
 ---@return table|nil, string|nil
 function QBSkillsDatabase.load(citizenid, legacy)
-    local profile, profileErr = QB.sql.single(PROFILE_SQL, { citizenid })
+    local profile, profileErr = Kora.sql.single(PROFILE_SQL, { citizenid })
     if profileErr then return nil, profileErr end
     if not profile then
         local imported, importErr = importLegacy(citizenid, legacy)
@@ -53,18 +53,18 @@ end
 ---@param maximumXp integer
 ---@return integer|nil, string|nil
 function QBSkillsDatabase.addXp(citizenid, skill, amount, maximumXp)
-    local affected, err = QB.sql.update(AWARD_SQL, { citizenid, skill, amount, maximumXp })
+    local affected, err = Kora.sql.update(AWARD_SQL, { citizenid, skill, amount, maximumXp })
     if not affected then return nil, err end
-    local row, readErr = QB.sql.single(SKILL_SQL, { citizenid, skill })
+    local row, readErr = Kora.sql.single(SKILL_SQL, { citizenid, skill })
     if not row then return nil, readErr or 'skill award was written but could not be read back' end
     return math.max(0, math.min(maximumXp, math.floor(tonumber(row.xp) or 0)))
 end
 
 CreateThread(function()
-    while not QB.sql.ready(60000) do
+    while not Kora.sql.ready(60000) do
         print('^3[qbskills]^7 still waiting for qbsql; migration will resume automatically.')
     end
-    local _, err = QB.sql.migrateFiles(GetCurrentResourceName(), {
+    local _, err = Kora.sql.migrateFiles(GetCurrentResourceName(), {
         { version = 1, name = 'skills', file = 'sql/001_skills.sql' },
     })
     if err then

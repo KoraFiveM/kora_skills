@@ -7,7 +7,7 @@ local harness = require('harness')
 local profileExists = false
 local progress = {}
 
-_G.QB = { sql = {
+_G.Kora = { sql = {
     ready = function() return true end,
     migrateFiles = function() return true end,
     single = function(sql, params)

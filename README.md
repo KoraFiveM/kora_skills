@@ -59,18 +59,18 @@ end
 
 ## kora_lib skill checks
 
-kora_lib exposes an optional `QB.skills` bridge only while `kora_skills` is started.
+kora_lib exposes an optional `Kora.skills` bridge only while `kora_skills` is started.
 The proof-safe form for a valued action is:
 
 ```lua
 -- server: perform your own action validation first
-local authorization = QB.minigames.authorizeSkillCheck(src, 'mining', 'skillbar', {
+local authorization = Kora.minigames.authorizeSkillCheck(src, 'mining', 'skillbar', {
     zoneSize = 0.16,
     attempts = 1,
 })
 
 -- client
-local result = QB.minigames.playSkillCheck('mining', 'skillbar', nil, authorization)
+local result = Kora.minigames.playSkillCheck('mining', 'skillbar', nil, authorization)
 ```
 
 The skill bonus is calculated from authoritative server SQL state and captured

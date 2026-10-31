@@ -98,23 +98,23 @@ local function appDefinition()
 end
 
 local function render()
-    if appOpen then QB.nui.registerApp(appDefinition()) end
+    if appOpen then Kora.nui.registerApp(appDefinition()) end
 end
 
 local function open()
     if appOpen then return end
     if not readSkills() then
-        return QB.notify.send({ title = 'Skills', message = 'Your skills are not available yet.', type = 'error' })
+        return Kora.notify.send({ title = 'Skills', message = 'Your skills are not available yet.', type = 'error' })
     end
     appOpen = true
-    QB.nui.registerApp(appDefinition())
-    QB.nui.openApp(APP_ID)
+    Kora.nui.registerApp(appDefinition())
+    Kora.nui.openApp(APP_ID)
     appOpen = false
 end
 
 RegisterNetEvent('qbskills:client:levelledUp', function(data)
     if type(data) ~= 'table' then return end
-    QB.notify.send({
+    Kora.notify.send({
         title = 'Skill level up',
         message = ('%s is now level %d.'):format(data.label or 'A skill', tonumber(data.level) or 1),
         type = 'success',

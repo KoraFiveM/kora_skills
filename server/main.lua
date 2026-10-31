@@ -125,7 +125,7 @@ local function isWithinDistance(source, location, distance)
     if distance <= 0 or distance > 1000 then return false, 'invalid award distance' end
 
     local target = vector3(location.x, location.y, location.z)
-    if not QB.distance.player(source, target, distance) then
+    if not Kora.distance.player(source, target, distance) then
         return false, 'player is too far from the award location'
     end
     return true
