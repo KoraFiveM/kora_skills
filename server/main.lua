@@ -44,10 +44,6 @@ local function playerSkills(source)
     return skills
 end
 
-local function syncSkills(source, skills)
-    return exports.kora_core:setPlayerDataField(source, 'skills', skills)
-end
-
 local function cloneOptions(options)
     local clone = {}
     for key, value in pairs(options or {}) do clone[key] = value end
@@ -134,8 +130,6 @@ end
 ---@param source integer
 ---@param skill string
 ---@param amount number
----@param location? vector3|table
----@param distance? number
 ---@return boolean, string|nil
 local function addRepLocked(source, skill, amount)
     local skills, err = playerSkills(source)
@@ -152,7 +146,7 @@ local function addRepLocked(source, skill, amount)
     if not xp then return false, writeErr end
     local updated = QBSkills.makeSkill(skill, xp)
     skills[skill] = updated
-    local synced, syncErr = syncSkills(source, skills)
+    local synced, syncErr = exports.kora_core:setPlayerDataField(source, 'skills', skills)
     if not synced then return false, syncErr end
 
     if updated.level > previous.level then
