@@ -13,6 +13,19 @@ local function readProgress(citizenid)
     for _, row in ipairs(rows) do
         if Config.skills[row.skill] then stored[row.skill] = { xp = tonumber(row.xp) or 0 } end
     end
+    local missing = {}
+    for _, skill in ipairs(Config.skillOrder) do
+        if not stored[skill] then
+            missing[#missing + 1] = {
+                sql = 'INSERT IGNORE INTO `qbskills_progress` (`citizenid`,`skill`,`xp`) VALUES (?,?,?)',
+                params = { citizenid, skill, 0 },
+            }
+        end
+    end
+    if #missing > 0 then
+        local inserted, insertErr = Kora.sql.transaction(missing)
+        if not inserted then return nil, insertErr or 'could not initialise configured skills' end
+    end
     local skills = QBSkills.normalise(stored)
     return skills
 end

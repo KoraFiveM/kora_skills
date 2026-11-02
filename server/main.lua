@@ -192,6 +192,17 @@ AddEventHandler('qbcore:server:playerDropped', function(source)
     skillsBySource[source] = nil
 end)
 
+Kora.callback.register('kora_skills:server:getAll', function(source)
+    local player = exports.kora_core:getPlayer(source)
+    if type(player) ~= 'table' or type(player.citizenid) ~= 'string' then
+        return nil, 'player has no active character'
+    end
+    local skills, err = loadPlayerSkills(source, player.citizenid)
+    if not skills then return nil, err end
+    exports.kora_core:setPlayerDataField(source, 'skills', skills)
+    return skills
+end)
+
 exports('getRep', getRep)
 exports('getAllRep', getAllRep)
 exports('addRep', addRep)

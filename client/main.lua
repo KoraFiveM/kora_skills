@@ -103,9 +103,11 @@ end
 
 local function open()
     if appOpen then return end
-    if not readSkills() then
-        return Kora.notify.send({ title = 'Skills', message = 'Your skills are not available yet.', type = 'error' })
+    local current, err = Kora.callback.trigger('kora_skills:server:getAll')
+    if type(current) ~= 'table' or next(current) == nil then
+        return Kora.notify.send({ title = 'Skills', message = err or 'Your skills are not available yet.', type = 'error' })
     end
+    skills = current
     appOpen = true
     Kora.nui.registerApp(appDefinition())
     Kora.nui.openApp(APP_ID)
