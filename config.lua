@@ -8,7 +8,7 @@ Config = {
     keyMapping = 'F4',
 
     -- The ordering is explicit so the panel and exported data stay stable.
-    skillOrder = { 'mining', 'fishing', 'woodcutting', 'crafting', 'cooking', 'metaldetecting', 'computing', 'hacking' },
+    skillOrder = { 'mining', 'smelting', 'fishing',  'crafting', 'cooking', 'metaldetecting', 'computing', 'hacking' },
     skills = {
         mining = {
             label = 'Mining', icon = 'Hammer',
@@ -16,13 +16,10 @@ Config = {
             -- skillbar target. The server clamps it to kora_lib's safe bounds.
             skillCheck = { skillbar = { zoneSize = 0.14 }, lockpick = { tolerance = 0.05 } },
         },
+        smelting = { label = 'Smelting', icon = 'Flame' },
         fishing = {
             label = 'Fishing', icon = 'Activity',
             skillCheck = { skillbar = { zoneSize = 0.10 } },
-        },
-        woodcutting = {
-            label = 'Woodcutting', icon = 'Wrench',
-            skillCheck = { skillbar = { zoneSize = 0.12 }, mash = { requiredPresses = -8 } },
         },
         crafting = {
             label = 'Crafting', icon = 'ShoppingBag',
