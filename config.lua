@@ -8,7 +8,7 @@ Config = {
     keyMapping = 'F4',
 
     -- The ordering is explicit so the panel and exported data stay stable.
-    skillOrder = { 'mining', 'smelting', 'fishing', 'woodcutting', 'crafting', 'cooking', 'metaldetecting', 'computing', 'hacking' },
+    skillOrder = { 'mining', 'smelting', 'fishing', 'crafting', 'cooking', 'metaldetecting', 'computing', 'hacking' },
     skills = {
         mining = {
             label = 'Mining', icon = 'Hammer',
