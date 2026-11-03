@@ -5,6 +5,8 @@ package.path = testDir .. '?.lua;' .. package.path
 
 local harness = require('harness')
 
+_G.exports = setmetatable({}, { __call = function() end })
+
 dofile(resourceRoot .. 'config.lua')
 dofile(resourceRoot .. 'shared/curve.lua')
 

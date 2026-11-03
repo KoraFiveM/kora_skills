@@ -77,12 +77,15 @@ CreateThread(function()
     while not Kora.sql.ready(60000) do
         print('^3[qbskills]^7 still waiting for qbsql; migration will resume automatically.')
     end
-    local _, err = Kora.sql.migrateFiles(GetCurrentResourceName(), {
-        { version = 1, name = 'skills', file = 'sql/001_skills.sql' },
-    })
+    local reports, err = Kora.sql.ensureTables(QBSkillsSchema)
     if err then
         print(('^1[qbskills]^7 migration failed: %s'):format(tostring(err)))
         return
+    end
+    for _, report in ipairs(reports or {}) do
+        for _, warning in ipairs(report.warnings or {}) do
+            print(('^3[qbskills]^7 schema warning: %s'):format(tostring(warning)))
+        end
     end
     TriggerEvent('qbskills:server:databaseReady')
 end)

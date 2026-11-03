@@ -11,7 +11,7 @@ local storedSkills
 local registeredProvider
 local metadataCleared = false
 
-_G.Kora = {}
+_G.Kora = { callback = { register = function() end } }
 _G.QBSkillsDatabase = {
     load = function(citizenid, legacy)
         harness.equal(citizenid, 'TEST')

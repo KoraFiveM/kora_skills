@@ -23,6 +23,7 @@ shared_scripts {
 }
 
 server_scripts {
+    'server/schema.lua',
     'server/database.lua',
     'server/main.lua',
 }
