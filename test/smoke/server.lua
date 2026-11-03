@@ -197,9 +197,37 @@ harness.test('the getAll callback is registered and returns the session skills',
     storedSkills = QBSkills.normalise({ mining = { xp = 70 } })
     local getAll = callbacks['kora_skills:server:getAll']
     harness.truthy(getAll, 'getAll callback should be registered')
+    local loads, originalLoad = 0, QBSkillsDatabase.load
+    QBSkillsDatabase.load = function(...) loads = loads + 1; return originalLoad(...) end
     local skills = getAll(1)
     harness.equal(skills.mining.xp, 70)
+    getAll(1); getAll(1)
+    harness.equal(loads, 1, 'repeat UI opens are served from the session cache')
+    registeredExports.addRep(1, 'mining', 5)
+    harness.equal(getAll(1).mining.xp, 75, 'getAll reflects awards without reloading')
+    harness.equal(loads, 1)
+    QBSkillsDatabase.load = originalLoad
     harness.equal(getAll(2), nil, 'a source without a character gets nil')
+end)
+
+harness.test('a contended award waits without a per-frame spin', function()
+    local waits = {}
+    local ran = false
+    _G.Wait = function(ms) waits[#waits + 1] = ms; coroutine.yield() end
+    local first = coroutine.create(function()
+        local load = QBSkillsDatabase.addXp
+        QBSkillsDatabase.addXp = function(...) coroutine.yield('held'); return load(...) end
+        local ok = registeredExports.addRep(1, 'mining', 1)
+        QBSkillsDatabase.addXp = load
+        return ok
+    end)
+    harness.equal(select(2, coroutine.resume(first)), 'held')
+    local second = coroutine.create(function() ran = registeredExports.addRep(1, 'mining', 1) end)
+    coroutine.resume(second)
+    harness.equal(waits[1], 10, 'the lock is polled every 10 ms, not every frame')
+    coroutine.resume(first)
+    coroutine.resume(second)
+    harness.truthy(ran, 'the queued award completes after the lock is released')
 end)
 
 if harness.failures > 0 then os.exit(1) end

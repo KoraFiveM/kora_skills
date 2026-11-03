@@ -4,6 +4,7 @@ end
 
 local skillsBySource = {}
 local awardLocks = {}
+local AWARD_LOCK_POLL = 10
 
 local function loadPlayerSkills(source, citizenid)
     local player = exports.kora_core:getPlayer(source)
@@ -169,7 +170,8 @@ local function addRep(source, skill, amount, location, distance)
     -- The SQL increment itself is atomic. Serialising per session also keeps
     -- read-back completion order from allowing an older result to replace a
     -- newer value in the private cache or replicated read model.
-    while awardLocks[source] do Wait(0) end
+    -- Awards are rare and short; a 10 ms poll avoids spinning every frame (F#309).
+    while awardLocks[source] do Wait(AWARD_LOCK_POLL) end
     awardLocks[source] = true
     local results = table.pack(pcall(addRepLocked, source, skill, amount))
     awardLocks[source] = nil
@@ -192,15 +194,11 @@ AddEventHandler('qbcore:server:playerDropped', function(source)
     skillsBySource[source] = nil
 end)
 
+-- The UI read is served from the SQL-backed session cache (awards write through
+-- it), so opening the menu costs no queries and can't publish a pre-award
+-- snapshot. Only a cold cache loads from SQL (F#308).
 Kora.callback.register('kora_skills:server:getAll', function(source)
-    local player = exports.kora_core:getPlayer(source)
-    if type(player) ~= 'table' or type(player.citizenid) ~= 'string' then
-        return nil, 'player has no active character'
-    end
-    local skills, err = loadPlayerSkills(source, player.citizenid)
-    if not skills then return nil, err end
-    exports.kora_core:setPlayerDataField(source, 'skills', skills)
-    return skills
+    return playerSkills(source)
 end)
 
 exports('getRep', getRep)
