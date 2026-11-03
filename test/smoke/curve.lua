@@ -5,6 +5,8 @@ package.path = testDir .. '?.lua;' .. package.path
 
 local harness = require('harness')
 
+-- config.lua registers the GetSkillsData export at load.
+_G.exports = _G.exports or function() end
 dofile(resourceRoot .. 'config.lua')
 dofile(resourceRoot .. 'shared/curve.lua')
 

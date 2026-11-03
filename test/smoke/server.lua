@@ -11,7 +11,8 @@ local storedSkills
 local registeredProvider
 local metadataCleared = false
 
-_G.Kora = {}
+local callbacks = {}
+_G.Kora = { callback = { register = function(name, fn) callbacks[name] = fn end } }
 _G.QBSkillsDatabase = {
     load = function(citizenid, legacy)
         harness.equal(citizenid, 'TEST')
@@ -188,6 +189,17 @@ harness.test('pending profile reads cannot outlive unload or drop cleanup', func
     exports.kora_core.getPlayer = originalGetter
     exports.kora_core.setMetaData = originalMetadata
     exports.kora_core.setPlayerDataField = originalSync
+end)
+
+harness.test('the getAll callback is registered and returns the session skills', function()
+    fire('QBCore:Server:OnPlayerUnload', 1)
+    player = { citizenid = 'TEST', metadata = {} }
+    storedSkills = QBSkills.normalise({ mining = { xp = 70 } })
+    local getAll = callbacks['kora_skills:server:getAll']
+    harness.truthy(getAll, 'getAll callback should be registered')
+    local skills = getAll(1)
+    harness.equal(skills.mining.xp, 70)
+    harness.equal(getAll(2), nil, 'a source without a character gets nil')
 end)
 
 if harness.failures > 0 then os.exit(1) end

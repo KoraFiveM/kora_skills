@@ -32,6 +32,7 @@ _G.Kora = { sql = {
     end,
 } }
 _G.CreateThread = function() end
+_G.exports = _G.exports or function() end
 _G.GetCurrentResourceName = function() return 'kora_skills' end
 _G.TriggerEvent = function() end
 
