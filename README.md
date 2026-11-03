@@ -77,3 +77,10 @@ The skill bonus is calculated from authoritative server SQL state and captured
 inside the authorization. The player still needs a valid kora_lib proof and the
 calling resource must re-check its own target, inventory, and proximity state
 before applying its result.
+
+## Key binding
+
+`/skills` (`Config.command`) and `/skillList` open the panel. The key
+(`Config.keyMapping`, default F4) is registered through `Kora.keybind` as
+"Open your skills". Players who had rebound the old key mapping need to rebind
+it once in FiveM's key settings.

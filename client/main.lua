@@ -125,7 +125,14 @@ end)
 
 RegisterCommand(Config.command, open, false)
 RegisterCommand('skillList', open, false) -- md_skills compatibility command
-RegisterKeyMapping(Config.command, 'Open your skills', 'keyboard', Config.keyMapping)
+-- Rebindable key through kora_lib (F#310). Shows in FiveM key settings as "Open your skills".
+Kora.keybind.add({
+    name = 'kora_skills_open',
+    description = 'Open your skills',
+    defaultMapper = 'keyboard',
+    defaultKey = Config.keyMapping,
+    onPressed = open,
+})
 
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     readSkills()
