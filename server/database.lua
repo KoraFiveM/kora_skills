@@ -75,11 +75,11 @@ end
 
 CreateThread(function()
     while not Kora.sql.ready(60000) do
-        print('^3[qbskills]^7 still waiting for qbsql; migration will resume automatically.')
+        print('^3[qbskills]^7 still waiting for qbsql; schema setup will resume automatically.')
     end
     local reports, err = Kora.sql.ensureTables(QBSkillsSchema)
     if err then
-        print(('^1[qbskills]^7 migration failed: %s'):format(tostring(err)))
+        print(('^1[qbskills]^7 schema setup failed: %s'):format(tostring(err)))
         return
     end
     for _, report in ipairs(reports or {}) do
