@@ -7,7 +7,7 @@ server exports, and a `/skillList` compatibility command.
 
 It integrates with this server differently in two intentional ways:
 
-- Skill XP is authoritative in `qbskills_progress`. `PlayerData.skills` is a
+- Skill XP is authoritative in `kora_skills_progress`. `PlayerData.skills` is a
   replicated-only read model for client UI and is never trusted server-side.
 - Its panel is a kora_lib AppShell app. The shared UI owns focus and lifecycle;
   `kora_skills` owns only skill state and the progression graph data.
@@ -24,7 +24,7 @@ Configure skill names, order, labels, icons, level cap, and optional minigame
 bonuses in [config.lua](config.lua). Existing characters are automatically
 backfilled with any new configured skill on their next load/read. Existing
 `metadata.skills` values are imported once, marked migrated in
-`qbskills_profiles`, and removed from metadata.
+`kora_skills_profiles`, and removed from metadata.
 
 Open the panel with `/skills`, `/skillList`, or the configured F6 key mapping.
 

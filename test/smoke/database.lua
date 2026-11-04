@@ -11,7 +11,7 @@ _G.Kora = { sql = {
     ready = function() return true end,
     ensureTables = function() return {} end,
     single = function(sql, params)
-        if sql:find('qbskills_profiles', 1, true) then return profileExists and { citizenid = params[1] } or nil end
+        if sql:find('kora_skills_profiles', 1, true) then return profileExists and { citizenid = params[1] } or nil end
         return progress[params[2]] and { xp = progress[params[2]] } or nil
     end,
     query = function()
@@ -43,8 +43,8 @@ dofile(resourceRoot .. 'server/database.lua')
 
 harness.test('schema declares both skill tables', function()
     harness.equal(#QBSkillsSchema, 2)
-    harness.equal(QBSkillsSchema[1].name, 'qbskills_profiles')
-    harness.equal(QBSkillsSchema[2].name, 'qbskills_progress')
+    harness.equal(QBSkillsSchema[1].name, 'kora_skills_profiles')
+    harness.equal(QBSkillsSchema[2].name, 'kora_skills_progress')
 end)
 
 harness.test('first load imports legacy metadata exactly once', function()

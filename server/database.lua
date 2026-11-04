@@ -1,10 +1,10 @@
 QBSkillsDatabase = QBSkillsDatabase or {}
 
-local PROFILE_SQL = 'SELECT `citizenid` FROM `qbskills_profiles` WHERE `citizenid` = ?'
-local PROGRESS_SQL = 'SELECT `skill`,`xp` FROM `qbskills_progress` WHERE `citizenid` = ?'
-local AWARD_SQL = [[INSERT INTO `qbskills_progress` (`citizenid`,`skill`,`xp`) VALUES (?,?,?)
+local PROFILE_SQL = 'SELECT `citizenid` FROM `kora_skills_profiles` WHERE `citizenid` = ?'
+local PROGRESS_SQL = 'SELECT `skill`,`xp` FROM `kora_skills_progress` WHERE `citizenid` = ?'
+local AWARD_SQL = [[INSERT INTO `kora_skills_progress` (`citizenid`,`skill`,`xp`) VALUES (?,?,?)
     ON DUPLICATE KEY UPDATE `xp` = LEAST(`xp` + VALUES(`xp`), ?)]]
-local SKILL_SQL = 'SELECT `xp` FROM `qbskills_progress` WHERE `citizenid` = ? AND `skill` = ?'
+local SKILL_SQL = 'SELECT `xp` FROM `kora_skills_progress` WHERE `citizenid` = ? AND `skill` = ?'
 
 local function readProgress(citizenid)
     local rows, err = Kora.sql.query(PROGRESS_SQL, { citizenid })
@@ -17,7 +17,7 @@ local function readProgress(citizenid)
     for _, skill in ipairs(Config.skillOrder) do
         if not stored[skill] then
             missing[#missing + 1] = {
-                sql = 'INSERT IGNORE INTO `qbskills_progress` (`citizenid`,`skill`,`xp`) VALUES (?,?,?)',
+                sql = 'INSERT IGNORE INTO `kora_skills_progress` (`citizenid`,`skill`,`xp`) VALUES (?,?,?)',
                 params = { citizenid, skill, 0 },
             }
         end
@@ -33,13 +33,13 @@ end
 local function importLegacy(citizenid, legacy)
     local skills = QBSkills.normalise(legacy)
     local statements = {
-        { sql = 'INSERT IGNORE INTO `qbskills_profiles` (`citizenid`) VALUES (?)', params = { citizenid } },
+        { sql = 'INSERT IGNORE INTO `kora_skills_profiles` (`citizenid`) VALUES (?)', params = { citizenid } },
     }
     for _, skill in ipairs(Config.skillOrder) do
         local xp = skills[skill].xp
         if xp > 0 then
             statements[#statements + 1] = {
-                sql = 'INSERT IGNORE INTO `qbskills_progress` (`citizenid`,`skill`,`xp`) VALUES (?,?,?)',
+                sql = 'INSERT IGNORE INTO `kora_skills_progress` (`citizenid`,`skill`,`xp`) VALUES (?,?,?)',
                 params = { citizenid, skill, xp },
             }
         end
