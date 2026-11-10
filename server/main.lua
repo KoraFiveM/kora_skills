@@ -113,7 +113,10 @@ local function isLevel(source, skill, level)
 end
 
 local function isWithinDistance(source, location, distance)
-    if type(location) ~= 'table' or type(location.x) ~= 'number' or type(location.y) ~= 'number'
+    -- README passes vector coords; a plain { x, y, z } table works the same.
+    local kind = type(location)
+    if (kind ~= 'table' and kind ~= 'vector3' and kind ~= 'vector4')
+        or type(location.x) ~= 'number' or type(location.y) ~= 'number'
         or type(location.z) ~= 'number' then
         return false, 'invalid award location'
     end

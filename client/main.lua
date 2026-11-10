@@ -148,8 +148,11 @@ exports('getAllRep', function()
 end)
 
 exports('isLevel', function(skill, level)
+    -- Same rule as the server's isLevel: a whole level of at least 1.
+    level = tonumber(level)
+    if not level or level % 1 ~= 0 or level < 1 then return false end
     local data = skills[skill]
-    return data ~= nil and data.level >= (tonumber(level) or math.huge)
+    return data ~= nil and data.level >= level
 end)
 
 exports('getSkillCheckOptions', function(skill, gameType, options)
