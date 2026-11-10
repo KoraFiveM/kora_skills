@@ -14,7 +14,7 @@ It integrates with this server differently in two intentional ways:
 
 ## Install
 
-Ensure it after kora_lib, kora_theme, and qbcore:
+Ensure it after kora_lib, kora_theme, and kora_core:
 
 ```cfg
 ensure kora_skills

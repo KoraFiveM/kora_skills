@@ -12,10 +12,10 @@ local registeredProvider
 local metadataCleared = false
 
 _G.Kora = { callback = { register = function() end } }
-_G.QBSkillsDatabase = {
+_G.KoraSkillsDatabase = {
     load = function(citizenid, legacy)
         harness.equal(citizenid, 'TEST')
-        local skills = QBSkills.normalise(storedSkills or legacy)
+        local skills = KoraSkills.normalise(storedSkills or legacy)
         storedSkills = skills
         return skills
     end,
@@ -62,7 +62,7 @@ dofile(resourceRoot .. 'shared/curve.lua')
 dofile(arg[1] or resourceRoot .. 'server/main.lua')
 
 harness.test('database readiness registers the pre-snapshot PlayerData provider', function()
-    fire('qbskills:server:databaseReady')
+    fire('kora_skills:server:databaseReady')
     harness.truthy(registeredProvider, 'PlayerData.skills provider should be registered')
     local skills = registeredProvider(1, 'TEST')
     harness.equal(skills.mining.xp, 40, 'legacy XP should reach the SQL-backed profile loader')
@@ -72,7 +72,7 @@ end)
 harness.test('reads use the private SQL-backed session cache', function()
     local skills = registeredExports.getAllRep(1)
     harness.equal(skills.mining.xp, 40)
-    harness.equal(skills.mining.level, QBSkills.levelForXp(40))
+    harness.equal(skills.mining.level, KoraSkills.levelForXp(40))
 end)
 
 harness.test('awards write through the database then update replicated PlayerData', function()
@@ -84,13 +84,13 @@ harness.test('awards write through the database then update replicated PlayerDat
 end)
 
 harness.test('metadata changes cannot affect server skill checks after hydration', function()
-    player.metadata.skills = { mining = { xp = QBSkills.xpForLevel(Config.maxLevel) } }
+    player.metadata.skills = { mining = { xp = KoraSkills.xpForLevel(Config.maxLevel) } }
     harness.equal(registeredExports.isLevel(1, 'mining', Config.maxLevel), false,
         'server checks must use the private SQL-backed cache, not metadata')
 end)
 
 harness.test('skill check options use authoritative cached progression', function()
-    storedSkills.mining = QBSkills.makeSkill('mining', QBSkills.xpForLevel(Config.maxLevel))
+    storedSkills.mining = KoraSkills.makeSkill('mining', KoraSkills.xpForLevel(Config.maxLevel))
     fire('QBCore:Server:OnPlayerUnload', 1)
     player.metadata.skills = nil
     local options = registeredExports.getSkillCheckOptions(1, 'mining', 'skillbar', {
@@ -103,7 +103,7 @@ harness.test('skill check options use authoritative cached progression', functio
 end)
 
 harness.test('pending profile reads cannot outlive unload or drop cleanup', function()
-    local originalLoad = QBSkillsDatabase.load
+    local originalLoad = KoraSkillsDatabase.load
     local originalGetter = exports.kora_core.getPlayer
     local originalMetadata = exports.kora_core.setMetaData
     local originalSync = exports.kora_core.setPlayerDataField
@@ -129,15 +129,15 @@ harness.test('pending profile reads cannot outlive unload or drop cleanup', func
         fire('QBCore:Server:OnPlayerUnload', 1)
         player = { citizenid = 'TEST', metadata = { skills = { fishing = { xp = 5 } } } }
         local level, held = 15, true
-        QBSkillsDatabase.load = function()
-            local snapshot = QBSkills.normalise({ fishing = { xp = QBSkills.xpForLevel(level) } })
+        KoraSkillsDatabase.load = function()
+            local snapshot = KoraSkills.normalise({ fishing = { xp = KoraSkills.xpForLevel(level) } })
             if held then held = false; coroutine.yield('profile-read') end
             return snapshot
         end
         local thread = coroutine.create(function() return registeredExports.getRep(1, 'fishing') end)
         local ok, marker = coroutine.resume(thread)
         harness.truthy(ok, marker); harness.equal(marker, 'profile-read')
-        fire(case:find('drop', 1, true) and 'qbcore:server:playerDropped' or 'QBCore:Server:OnPlayerUnload', 1)
+        fire(case:find('drop', 1, true) and 'kora_core:server:playerDropped' or 'QBCore:Server:OnPlayerUnload', 1)
         if case == 'unload-empty' or case == 'drop-empty' then
             player = nil
         elseif case == 'different-character' then
@@ -170,13 +170,13 @@ harness.test('pending profile reads cannot outlive unload or drop cleanup', func
     -- An incomplete cache marker must not suppress retry or concurrent active reads.
     fire('QBCore:Server:OnPlayerUnload', 1)
     player = { citizenid = 'TEST', metadata = {} }
-    QBSkillsDatabase.load = function() return nil, 'controlled read failure' end
+    KoraSkillsDatabase.load = function() return nil, 'controlled read failure' end
     local value, err = registeredExports.getRep(1, 'fishing')
     harness.equal(value, nil); harness.equal(err, 'controlled read failure')
     local held = true
-    QBSkillsDatabase.load = function()
+    KoraSkillsDatabase.load = function()
         if held then held = false; coroutine.yield('profile-read') end
-        return QBSkills.normalise({ fishing = { xp = QBSkills.xpForLevel(15) } })
+        return KoraSkills.normalise({ fishing = { xp = KoraSkills.xpForLevel(15) } })
     end
     local thread = coroutine.create(function() return registeredExports.getRep(1, 'fishing') end)
     local ok, marker = coroutine.resume(thread)
@@ -184,7 +184,7 @@ harness.test('pending profile reads cannot outlive unload or drop cleanup', func
     harness.equal(registeredExports.getRep(1, 'fishing').level, 15, 'parallel active read still loads')
     ok, value, err = coroutine.resume(thread)
     harness.truthy(ok, value); harness.equal(value.level, 15); harness.equal(err, nil)
-    QBSkillsDatabase.load = originalLoad
+    KoraSkillsDatabase.load = originalLoad
     exports.kora_core.getPlayer = originalGetter
     exports.kora_core.setMetaData = originalMetadata
     exports.kora_core.setPlayerDataField = originalSync

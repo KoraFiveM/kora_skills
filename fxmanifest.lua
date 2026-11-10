@@ -3,8 +3,6 @@ game 'gta5'
 lua54 'yes'
 
 name 'kora_skills'
--- Keep the legacy resource name resolvable for exports['qbskills'] callers.
-provide 'qbskills'
 author 'qbcore2'
 version '0.1.0'
 description 'Config-driven XP skills with kora_lib AppShell progression graphs'

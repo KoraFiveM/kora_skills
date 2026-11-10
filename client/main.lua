@@ -1,4 +1,4 @@
-local APP_ID = 'qbskills:progression'
+local APP_ID = 'kora_skills:progression'
 local skills = {}
 local appOpen = false
 
@@ -114,7 +114,7 @@ local function open()
     appOpen = false
 end
 
-RegisterNetEvent('qbskills:client:levelledUp', function(data)
+RegisterNetEvent('kora_skills:client:levelledUp', function(data)
     if type(data) ~= 'table' then return end
     Kora.notify.send({
         title = 'Skill level up',

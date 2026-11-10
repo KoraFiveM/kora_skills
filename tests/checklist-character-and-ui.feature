@@ -8,9 +8,9 @@ Feature: kora_skills — Character & UI
     Checklist test: Type /skills (or /skillList) to open the Skills panel.
     """
     When I run the command "/skillList"
-    Then the "qbskills:progression" app opens
+    Then the "kora_skills:progression" app opens
     When I run the command "/skills"
-    Then the "qbskills:progression" app should be open
+    Then the "kora_skills:progression" app should be open
 
   @kora_skills @checklist @checklist:kora_skills:open-key @cat:character-and-ui
   Scenario: Open skills with F4 key
@@ -18,7 +18,7 @@ Feature: kora_skills — Character & UI
     Checklist test: Press F4 (rebindable, 'Open your skills'); README mentions F6 but config uses F4.
     """
     When I press the "F4" key
-    Then the "qbskills:progression" app opens
+    Then the "kora_skills:progression" app opens
     And I confirm: the key binding is listed as 'Open your skills' in the FiveM key bindings and can be rebound
 
   @kora_skills @checklist @checklist:kora_skills:overview-tab @cat:character-and-ui

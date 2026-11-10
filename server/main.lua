@@ -16,7 +16,7 @@ local function loadPlayerSkills(source, citizenid)
         cached = { citizenid = citizenid }
         skillsBySource[source] = cached
     end
-    local skills, err = QBSkillsDatabase.load(citizenid, legacy)
+    local skills, err = KoraSkillsDatabase.load(citizenid, legacy)
     if not skills then return nil, err end
     player = exports.kora_core:getPlayer(source)
     if skillsBySource[source] ~= cached or type(player) ~= 'table' or player.citizenid ~= citizenid then
@@ -137,20 +137,20 @@ local function addRepLocked(source, skill, amount)
     local previous = skills[skill]
     local player = exports.kora_core:getPlayer(source)
     if type(player) ~= 'table' then return false, 'player has no active character' end
-    local xp, writeErr = QBSkillsDatabase.addXp(
+    local xp, writeErr = KoraSkillsDatabase.addXp(
         player.citizenid,
         skill,
         amount,
-        QBSkills.xpForLevel(Config.maxLevel)
+        KoraSkills.xpForLevel(Config.maxLevel)
     )
     if not xp then return false, writeErr end
-    local updated = QBSkills.makeSkill(skill, xp)
+    local updated = KoraSkills.makeSkill(skill, xp)
     skills[skill] = updated
     local synced, syncErr = exports.kora_core:setPlayerDataField(source, 'skills', skills)
     if not synced then return false, syncErr end
 
     if updated.level > previous.level then
-        TriggerClientEvent('qbskills:client:levelledUp', source, updated)
+        TriggerClientEvent('kora_skills:client:levelledUp', source, updated)
     end
     return true
 end
@@ -177,10 +177,10 @@ local function addRep(source, skill, amount, location, distance)
     return table.unpack(results, 2, results.n)
 end
 
-AddEventHandler('qbskills:server:databaseReady', function()
+AddEventHandler('kora_skills:server:databaseReady', function()
     local registered, err = exports.kora_core:registerPlayerDataField('skills', loadPlayerSkills)
     if not registered then
-        print(('^1[qbskills]^7 could not register PlayerData.skills: %s'):format(tostring(err)))
+        print(('^1[kora_skills]^7 could not register PlayerData.skills: %s'):format(tostring(err)))
     end
 end)
 
@@ -188,7 +188,7 @@ AddEventHandler('QBCore:Server:OnPlayerUnload', function(source)
     skillsBySource[source] = nil
 end)
 
-AddEventHandler('qbcore:server:playerDropped', function(source)
+AddEventHandler('kora_core:server:playerDropped', function(source)
     skillsBySource[source] = nil
 end)
 

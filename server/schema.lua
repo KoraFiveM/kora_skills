@@ -1,4 +1,4 @@
-QBSkillsSchema = {
+KoraSkillsSchema = {
     {
         name = 'kora_skills_profiles',
         collate = 'utf8mb4_unicode_ci',

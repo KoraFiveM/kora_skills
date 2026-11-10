@@ -2,12 +2,12 @@
 -- generated once per Lua realm so reads and level checks are constant-time in
 -- ordinary gameplay and never yield.
 
-QBSkills = QBSkills or {}
+KoraSkills = KoraSkills or {}
 
 assert(type(Config) == 'table' and type(Config.maxLevel) == 'number' and Config.maxLevel >= 1
-    and Config.maxLevel % 1 == 0, 'qbskills Config.maxLevel must be a positive integer.')
+    and Config.maxLevel % 1 == 0, 'kora_skills Config.maxLevel must be a positive integer.')
 assert(type(Config.skills) == 'table' and type(Config.skillOrder) == 'table',
-    'qbskills Config.skills and Config.skillOrder must be tables.')
+    'kora_skills Config.skills and Config.skillOrder must be tables.')
 
 local xpForLevel = { [1] = 0 }
 local accumulated = 0
@@ -22,29 +22,29 @@ local seenSkills = {}
 for index, name in ipairs(Config.skillOrder) do
     local definition = Config.skills[name]
     assert(type(name) == 'string' and #name <= 64 and name:match('^[%w_%-]+$'),
-        ('qbskills Config.skillOrder item %d must be a safe skill id.'):format(index))
-    assert(not seenSkills[name], ('qbskills Config.skillOrder repeats %q.'):format(name))
+        ('kora_skills Config.skillOrder item %d must be a safe skill id.'):format(index))
+    assert(not seenSkills[name], ('kora_skills Config.skillOrder repeats %q.'):format(name))
     assert(type(definition) == 'table' and type(definition.label) == 'string' and definition.label ~= '',
-        ('qbskills Config.skills.%s requires a label.'):format(name))
+        ('kora_skills Config.skills.%s requires a label.'):format(name))
     assert(definition.icon == nil or type(definition.icon) == 'string',
-        ('qbskills Config.skills.%s icon must be a string.'):format(name))
+        ('kora_skills Config.skills.%s icon must be a string.'):format(name))
     seenSkills[name] = true
 end
 
 for name in pairs(Config.skills) do
-    assert(seenSkills[name], ('qbskills Config.skills.%s is missing from Config.skillOrder.'):format(name))
+    assert(seenSkills[name], ('kora_skills Config.skills.%s is missing from Config.skillOrder.'):format(name))
 end
 
 ---@param level integer
 ---@return integer
-function QBSkills.xpForLevel(level)
+function KoraSkills.xpForLevel(level)
     level = math.max(1, math.min(Config.maxLevel, math.floor(tonumber(level) or 1)))
     return xpForLevel[level]
 end
 
 ---@param xp number
 ---@return integer
-function QBSkills.levelForXp(xp)
+function KoraSkills.levelForXp(xp)
     xp = math.max(0, math.floor(tonumber(xp) or 0))
     local low, high = 1, Config.maxLevel
     while low < high do
@@ -57,13 +57,13 @@ end
 ---@param skill string
 ---@param xp number
 ---@return table|nil
-function QBSkills.makeSkill(skill, xp)
+function KoraSkills.makeSkill(skill, xp)
     local definition = Config.skills[skill]
     if not definition then return nil end
 
     local maximumXp = xpForLevel[Config.maxLevel]
     xp = math.max(0, math.min(maximumXp, math.floor(tonumber(xp) or 0)))
-    local level = QBSkills.levelForXp(xp)
+    local level = KoraSkills.levelForXp(xp)
     local currentLevelXp = xpForLevel[level]
     local nextLevelXp = level < Config.maxLevel and xpForLevel[level + 1] or maximumXp
     local percent = level == Config.maxLevel and 100
@@ -85,14 +85,14 @@ end
 
 ---@param values? table
 ---@return table skills, boolean changed
-function QBSkills.normalise(values)
+function KoraSkills.normalise(values)
     local result, changed = {}, type(values) ~= 'table'
     values = type(values) == 'table' and values or {}
 
     for _, skill in ipairs(Config.skillOrder) do
         local stored = values[skill]
         local xp = type(stored) == 'table' and stored.xp or 0
-        local data = QBSkills.makeSkill(skill, xp)
+        local data = KoraSkills.makeSkill(skill, xp)
         result[skill] = data
         if type(stored) ~= 'table' or stored.xp ~= data.xp or stored.level ~= data.level
             or stored.percent ~= data.percent or stored.label ~= data.label or stored.name ~= data.name
