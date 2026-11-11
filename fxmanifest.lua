@@ -15,7 +15,7 @@ dependency 'kora_sql'
 shared_script '@kora_lib/init.lua'
 
 shared_scripts {
-    'config.lua',
+    'shared/config.lua',
     'shared/curve.lua',
 }
 
@@ -26,6 +26,10 @@ server_scripts {
     'server/main.lua',
 }
 client_script 'client/main.lua'
+
+files {
+    'locales/*.lua',
+}
 
 -- kora_qa: Gherkin test scenarios (converted legacy tests), see [kora]/kora_qa/README.md
 qa_feature 'tests/*.feature'

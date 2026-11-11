@@ -1,19 +1,14 @@
 Config = {
-    -- Read once for the automatic metadata -> SQL migration. A per-character
-    -- profile marker ensures later metadata writes can never be re-imported.
     legacyMetadataKey = 'skills',
     maxLevel = 99,
     maxAward = 100000,
     command = 'skills',
     keyMapping = 'F4',
 
-    -- The ordering is explicit so the panel and exported data stay stable.
     skillOrder = { 'mining', 'smelting', 'fishing', 'crafting', 'cooking', 'metaldetecting', 'computing', 'hacking' },
     skills = {
         mining = {
             label = 'Mining', icon = 'Hammer',
-            -- At level 99, this grants up to 0.14 more of the visible
-            -- skillbar target. The server clamps it to kora_lib's safe bounds.
             skillCheck = { skillbar = { zoneSize = 0.14 }, lockpick = { tolerance = 0.05 } },
         },
         smelting = { label = 'Smelting', icon = 'Flame' },
@@ -50,5 +45,5 @@ exports('GetSkillsData', function()
     end
     return tbl
 end)
--- Registers this resource-owned configuration with kora_lib.
+
 if Kora and Kora.config and Kora.config.adopt then Config = Kora.config.adopt(Config) end
