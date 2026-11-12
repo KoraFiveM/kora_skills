@@ -4,7 +4,7 @@ lua54 'yes'
 
 name 'kora_skills'
 author 'qbcore2'
-version '0.2.0'
+version '0.2.1'
 description 'Config-driven XP skills with kora_lib AppShell progression graphs'
 
 dependency 'kora_lib'
