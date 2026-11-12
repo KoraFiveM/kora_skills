@@ -28,7 +28,7 @@ backfilled with any new configured skill on their next load/read. Existing
 `metadata.skills` values are imported once, marked migrated in
 `kora_skills_profiles`, and removed from metadata.
 
-Open the panel with `/skills`, `/skillList`, or the configured F6 key mapping.
+Open the panel with `/skills`, `/skillList`, or the configured F4 key mapping.
 
 ## Server API
 

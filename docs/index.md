@@ -14,51 +14,23 @@ Current version: see `version` in `fxmanifest.lua`.
 - **Configurable skills** - skill ids, order, labels, icons and the level cap come from `config.lua`. See [Configuration](./configuration.md).
 - **Authoritative SQL storage** - XP lives in `kora_skills_progress`. `PlayerData.skills` is a replicated read model for UI only. See [Database](./database.md).
 - **Level curve** - cumulative XP per level follows the curve described in [Configuration](./configuration.md#level-curve).
-- **Server exports** - read skills, award XP (with optional proximity check) and test levels. See [Exports](./exports.md).
+- **Server exports** - read skills, award XP (with optional proximity check) and test levels. See [Public exports](./api/exports.md).
 - **Skill-aware minigames** - higher levels can make matching `kora_lib` skill checks easier. See [Skill checks](./skill-checks.md).
-- **Progression panel** - overview graph and searchable details table, plus a level-up notification. See [UI and commands](./ui.md).
+- **Progression panel** - overview graph and searchable details table, plus a level-up notification. See [Progression panel](./ui.md) and [Commands](./commands.md).
 - **One-time legacy import** - old `metadata.skills` values are imported into SQL once and the metadata key is removed. See [Database](./database.md#legacy-metadata-import).
 
-## Requirements
+See [Installation](./installation.md) for requirements, the `ensure` order, manifest and testing.
 
-All declared in `fxmanifest.lua` with `dependency`:
+## Documentation map
 
-| Resource | Used for |
-| --- | --- |
-| `kora_lib` | `Kora.sql`, `Kora.callback`, `Kora.nui`, `Kora.notify`, `Kora.distance`, `Kora.config` |
-| `kora_core` | Player lookup, `PlayerData.skills` field registration, player data change hooks, metadata |
-| `kora_sql` | Table creation and queries (its `init.lua` is loaded server-side) |
-| `kora_theme` | Declared as a dependency; no direct call to it appears in this resource's Lua |
-
-## Installation
-
-1. Place the resource in your resources folder.
-2. Ensure it after its dependencies:
-
-   ```cfg
-   ensure kora_lib
-   ensure kora_theme
-   ensure kora_sql
-   ensure kora_core
-   ensure kora_skills
-   ```
-
-3. No SQL import is needed. The tables are created automatically once `kora_sql` is ready. See [Database](./database.md).
-4. Adjust [Configuration](./configuration.md) if you want different skills.
-
-Other resources that call the exports (for example fishing or mining resources) should be ensured after `kora_skills`.
-
-## Testing
-
-- `bash test/run.sh` runs the offline Lua smoke tests in `test/smoke/` (curve, database, server). It uses `lua` or the interpreter in the `LUA` environment variable and does not start FiveM.
-- `tests/checklist-character-and-ui.feature` holds manual QA scenarios for `kora_qa` (registered with `qa_feature` in `fxmanifest.lua`).
-
-## Pages
-
+- [Installation](./installation.md) - install steps, requirements, manifest, md_skills migration, testing
+- [How to use](./how-to-use.md) - XP curve, awarding XP, skill-check easing, the panel
+- [Commands](./commands.md) - `/skills`, `/skillList` and the key binding
+- [API reference](./api/index.md) - overview of the export modules
+- [Public exports](./api/exports.md) - every server and client export with parameters, returns and examples
 - [Configuration](./configuration.md) - every `Config` option and the level curve
-- [Exports](./exports.md) - server and client exports
 - [Events](./events.md) - events and the callback used by the resource
 - [Skill checks](./skill-checks.md) - how skill levels adjust minigame difficulty
-- [UI and commands](./ui.md) - commands, key mapping and the progression panel
 - [Database](./database.md) - tables, columns and the legacy import
+- [Progression panel](./ui.md) - the AppShell panel and level-up notification
 - [Troubleshooting](./troubleshooting.md) - common problems and caveats
