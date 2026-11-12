@@ -12,6 +12,8 @@ It integrates with this server differently in two intentional ways:
 - Its panel is a kora_lib AppShell app. The shared UI owns focus and lifecycle;
   `kora_skills` owns only skill state and the progression graph data.
 
+Full documentation lives in [docs/](docs/index.md).
+
 ## Install
 
 Ensure it after kora_lib, kora_theme, and kora_core:
