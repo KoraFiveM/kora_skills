@@ -1,0 +1,50 @@
+{
+  "resource": "kora_skills",
+  "standardsRevision": "2026-11-12.2",
+  "realms": {
+    "client": [
+      "client/main.lua"
+    ],
+    "server": [
+      "server/database.lua",
+      "server/main.lua",
+      "server/schema.lua"
+    ],
+    "shared": [
+      "config.lua",
+      "shared/curve.lua"
+    ],
+    "manifest": [
+      "fxmanifest.lua"
+    ],
+    "test": [
+      "test/harness.lua",
+      "test/smoke/curve.lua",
+      "test/smoke/database.lua",
+      "test/smoke/server.lua"
+    ]
+  },
+  "exclude": [
+    ".git/*",
+    ".github/*",
+    ".standards/*",
+    "node_modules/*",
+    "**/node_modules/*",
+    "vendor/*",
+    "**/vendor/*",
+    "web/*",
+    "ui/*",
+    "html/*",
+    "dist/*",
+    "artifacts/*",
+    "runtime/*",
+    "txData/*",
+    "storage/*",
+    "stream/*",
+    "docs/*",
+    "__pycache__/*",
+    "modules/lookup/data/*"
+  ],
+  "project": "Kora Framework",
+  "copyright": "Copyright © 2026 Kora Framework"
+}
