@@ -1,6 +1,6 @@
 ---
 title: Skill checks
-sidebar_position: 5
+sidebar_position: 8
 ---
 
 # Skill checks

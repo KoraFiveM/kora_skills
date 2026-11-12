@@ -1,22 +1,11 @@
 ---
-title: UI and commands
-sidebar_position: 6
+title: Progression panel
+sidebar_position: 10
 ---
 
-# UI and commands
+# Progression panel
 
-## Commands
-
-| Command | Description |
-| --- | --- |
-| `/skills` | Opens the skills panel. The name comes from `Config.command`. |
-| `/skillList` | Always registered; same behaviour (md_skills compatibility). |
-
-The commands are registered without restriction, so no ACE permission is required.
-
-## Key mapping
-
-`RegisterKeyMapping` binds `Config.command` to `Config.keyMapping` (default `F4`) with the label "Open your skills". Players can rebind it in the FiveM key binding settings. The code default is F4 (the repository README still says F6, which is wrong).
+Commands and the key binding are documented on [Commands](./commands.md).
 
 ## Panel
 
